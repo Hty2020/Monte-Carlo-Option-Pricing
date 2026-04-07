@@ -1,4 +1,3 @@
-# Monte-Carlo-Option-Pricing
 # Monte Carlo Option Pricer
 
 A Python implementation of Monte Carlo pricing for European call options under two models: the classic **Black-Scholes / GBM** model and the **Heston stochastic-volatility** model. The project covers the full numerical workflow — simulation, variance reduction, performance optimisation, convergence analysis, and empirical benchmarking against real market data.
@@ -15,7 +14,7 @@ $$dS_t = r S_t  dt + \sigma S_t  dW_t$$
 
 which has the exact solution
 
-$$S_T = S_0 \exp\!\left[\left(r - \tfrac{1}{2}\sigma^2\right)T + \sigma W_T\right]$$
+$$S_T = S_0 \exp\left[\left(r - \tfrac{1}{2}\sigma^2\right)T + \sigma W_T\right]$$
 
 Two simulation modes are implemented:
 
@@ -39,16 +38,16 @@ $$dv_t = \kappa(\theta - v_t) dt + \xi \sqrt{v_t}  dW_t^v, \qquad d W^S  dW^v = 
 | $v_0$ | Initial variance |
 | $\kappa$ | Mean-reversion speed |
 | $\theta$ | Long-run variance |
-| $\xi$ | Volatility of volatility (vol-of-vol) |
-| $\rho$ | Correlation between asset and variance shocks (typically $< 0$, leverage effect) |
+| $\xi$ | Variation of variations |
+| $\rho$ | Correlation between price and variance |
 
-The two correlated Wiener increments are constructed via Cholesky decomposition:
+The two correlated Wiener increments are constructed as follows:
 
 $$W^v = \rho W^S + \sqrt{1-\rho^2} W^v, \qquad W^v \perp W^S$$
 
-Simulation uses log-space Euler–Maruyama discretisation with absolute-value reflection to keep variance non-negative (Higham–Mao scheme).
+Simulation uses log-space discretisation with absolute-value reflection to keep variance non-negative.
 
-Antithetic variates are applied to both Wiener processes simultaneously. Prices are validated against the semi-analytical Heston price computed via characteristic-function integration (Gil-Pelaez inversion):
+Antithetic variates are applied to both Wiener processes simultaneously. Prices are validated against the semi-analytical Heston price computed via characteristic-function integration:
 
 $$C = S_0 P_1 - K e^{-rT} P_2, \qquad P_j = \frac{1}{2} + \frac{1}{\pi} \int_0^\infty \mathrm{Re}\left[\frac{e^{-i\phi \ln K} f_j(\phi)}{i\phi}\right] d\phi$$
 
@@ -57,13 +56,6 @@ $$C = S_0 P_1 - K e^{-rT} P_2, \qquad P_j = \frac{1}{2} + \frac{1}{\pi} \int_0^\
 ## Performance
 
 Both classes accept a `USE_NUMBA` flag. When enabled, the inner simulation loops are compiled to native machine code via **Numba JIT** (`@jit(nopython=True)`). The Heston simulator additionally uses `parallel=True` for multi-core execution.
-
-Observed speedups (AAPL, $10^7$ samples):
-
-| Method | Without Numba | With Numba |
-|--------|--------------|------------|
-| GBM direct sampling | baseline | ~10–20× faster |
-| Heston path simulation | very slow | ~50–100× faster |
 
 > **Note:** The first call with Numba incurs a one-time JIT compilation overhead.
 
@@ -77,7 +69,6 @@ The constant-$\sigma$ assumption was tested empirically on real return data by s
 
 - $\sigma$ varies substantially across sub-intervals — the constant-volatility assumption does not hold.
 - The distribution of log-returns exhibits **fat tails**, deviating from the Gaussian assumption.
-- Consequence: BS systematically **underprices long-dated options** for large-cap stocks (AAPL, GOOGL), as it underestimates the probability weight in the tails.
 
 ### Model comparison vs. market data
 
@@ -85,13 +76,13 @@ Both models were benchmarked against live option chains (via `yfinance`) for thr
 
 | Ticker | Description |
 |--------|-------------|
-| AAPL | Large-cap, low volatility |
-| GOOGL | Large-cap, moderate volatility |
-| CRSP | Mid-cap biotech, high volatility |
+| AAPL | Large company|
+| GOOGL | Large company|
+| CRSP | Mid biotech |
 
-For each ticker, prices were compared across 5 expiry dates (fixed strike) and across 5 strikes (fixed expiry), covering ITM, ATM, and OTM contracts.
+For each ticker, prices were compared across 5 expiry dates (fixed strike) and across 5 strikes (fixed expiry).
 
-**BS model**: MC agrees with the analytical solution (no systematic bias), but both underestimate market prices for longer maturities.
+**BS model**: MC agrees with the analytical solution (no systematic bias), but both shows noticeable deviations from real market prices.
 
 **Heston model**: MC agrees with the semi-analytical price. However, with hand-picked parameters the model does not fit market prices well — proper calibration is required. A natural calibration objective is:
 
@@ -131,25 +122,6 @@ Calibration is left as a next step.
 
 ---
 
-## Requirements
-
-```
-numpy
-scipy
-numba
-pandas
-matplotlib
-yfinance
-```
-
-Install with:
-
-```bash
-pip install numpy scipy numba pandas matplotlib yfinance
-```
-
----
-
 ## Usage Example
 
 ```python
@@ -181,7 +153,6 @@ print(f"Heston analytical price : {analytical_price:.4f}")
 
 ## Limitations and Next Steps
 
-- **Heston calibration**: Parameters are currently set manually. Fitting to a full implied-volatility surface via least-squares optimisation is the natural next step.
-- **Discretisation scheme**: The Euler–Maruyama scheme with absolute-value reflection is simple but not the most accurate for the CIR variance process. The Quadratic-Exponential (QE) scheme (Andersen 2008) would improve accuracy at large time steps.
-- **Scope**: Only European call options are priced. Path-dependent payoffs (Asian, barrier) would require the full trajectory and would be a natural extension.
-- **Greeks**: Delta, Gamma, and Vega estimation via finite differences or likelihood-ratio methods is not yet implemented.
+- **Heston calibration**: Parameters are currently set manually. Fitting data via least-squares optimisation is the natural next step.
+- **Discretisation scheme**: The direct time discretization scheme with absolute-value reflection is simple but may not be the most accurate for the CIR variance process. Probably one could use the method inspired from molecular dynamics simulation (to be checked).
+- **Scope**: Only European call options are priced. Path-dependent payoffs would require the full trajectory and would be a natural extension.
