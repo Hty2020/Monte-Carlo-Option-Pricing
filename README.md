@@ -11,7 +11,7 @@ A Python implementation of Monte Carlo pricing for European call options under t
 
 The stock price $S_t$ follows Geometric Brownian Motion:
 
-$$dS_t = r S_t \, dt + \sigma S_t \, dW_t$$
+$$dS_t = r S_t  dt + \sigma S_t  dW_t$$
 
 which has the exact solution
 
@@ -30,9 +30,9 @@ Prices are validated against the closed-form Black-Scholes formula implemented i
 
 The Heston model relaxes the constant-volatility assumption by letting the variance $v_t$ follow a mean-reverting CIR process correlated with the stock:
 
-$$dS_t = r S_t \, dt + \sqrt{v_t} \, S_t \, dW_t^S$$
+$$dS_t = r S_t  dt + \sqrt{v_t}  S_t  dW_t^S$$
 
-$$dv_t = \kappa(\theta - v_t) \, dt + \xi \sqrt{v_t} \, dW_t^v, \qquad d W^S \, dW^v = \rho \, dt$$
+$$dv_t = \kappa(\theta - v_t) dt + \xi \sqrt{v_t}  dW_t^v, \qquad d W^S  dW^v = \rho dt$$
 
 | Parameter | Meaning |
 |-----------|---------|
@@ -44,13 +44,13 @@ $$dv_t = \kappa(\theta - v_t) \, dt + \xi \sqrt{v_t} \, dW_t^v, \qquad d W^S \, 
 
 The two correlated Wiener increments are constructed via Cholesky decomposition:
 
-$$W^v = \rho \, W^S + \sqrt{1-\rho^2} \, W^\perp, \qquad W^\perp \perp W^S$$
+$$W^v = \rho W^S + \sqrt{1-\rho^2} W^v, \qquad W^v \perp W^S$$
 
 Simulation uses log-space Euler–Maruyama discretisation with absolute-value reflection to keep variance non-negative (Higham–Mao scheme).
 
 Antithetic variates are applied to both Wiener processes simultaneously. Prices are validated against the semi-analytical Heston price computed via characteristic-function integration (Gil-Pelaez inversion):
 
-$$C = S_0 P_1 - K e^{-rT} P_2, \qquad P_j = \frac{1}{2} + \frac{1}{\pi} \int_0^\infty \mathrm{Re}\!\left[\frac{e^{-i\phi \ln K} f_j(\phi)}{i\phi}\right] d\phi$$
+$$C = S_0 P_1 - K e^{-rT} P_2, \qquad P_j = \frac{1}{2} + \frac{1}{\pi} \int_0^\infty \mathrm{Re}\left[\frac{e^{-i\phi \ln K} f_j(\phi)}{i\phi}\right] d\phi$$
 
 ---
 
