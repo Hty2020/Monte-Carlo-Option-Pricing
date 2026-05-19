@@ -84,11 +84,11 @@ For each ticker, prices were compared across 5 expiry dates (fixed strike) and a
 
 **BS model**: MC agrees with the analytical solution (no systematic bias), but both shows noticeable deviations from real market prices.
 
-**Heston model**: MC agrees with the semi-analytical price. However, with hand-picked parameters the model does not fit market prices well — proper calibration is required. A natural calibration objective is:
+**Heston model**: MC agrees with the semi-analytical price. However, with hand-picked parameters the model does not fit market prices well — proper calibration is required. One calibration objective is:
 
-$$\min_{\kappa,\,\theta,\,\xi,\,\rho,\,v_0} \sum_i \left(C_i^{\text{Heston}} - C_i^{\text{Market}}\right)^2$$
+$$\min_{\kappa,\,\theta,\,\xi,\,\rho,\,v_0} \sum_i \left(\sigma_i^{\text{Heston}} - \sigma_i^{\text{Market}}\right)^2$$
 
-Calibration is left as a next step.
+After calibration, one sees a better much in volatility curve as well as a better accuracy.
 
 ---
 
@@ -97,7 +97,8 @@ Calibration is left as a next step.
 ```
 .
 ├── MC_Pricer.py              # Core classes: MonteCarlo_GBM, MonteCarlo_Heston
-└── MC_Option_Pricer.ipynb    # Full analysis notebook
+|── Heston_Calibration.py             # the tool box used for calibrating Heston model
+└── MC_Option_Pricer_2.ipynb    # Full analysis notebook
 ```
 
 ### `MC_Pricer.py` — Public API
